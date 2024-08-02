@@ -7,11 +7,32 @@
 .dictationSolution {
   font-family: "Josefin Sans", sans-serif;
   font-optical-sizing: auto;
-  font-style: normal;
   font-weight: 700;
   background: transparent;
   color: white;
   resize: none;
+}
 
-  width: 100%;
+.contextmenu {
+  background-color: #1c1c1eff !important;
+}
+
+.contextmenu__item::after {
+  border-color: transparent transparent transparent #fff !important;
+}
+
+.submenu:hover > .contextmenu__item::after {
+  border-color: transparent transparent transparent #000 !important;
+}
+
+.submenu:hover > .contextmenu__item {
+  color: black;
+}
+
+.contextmenu__item:hover {
+  color: black;
+}
+
+.submenu__item {
+  background-color: #1c1c1eff !important;
 }
