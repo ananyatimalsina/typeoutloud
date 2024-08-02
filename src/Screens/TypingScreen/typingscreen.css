@@ -33,6 +33,10 @@
   color: black;
 }
 
+.contextmenu__item--disabled {
+  cursor: initial !important;
+}
+
 .submenu__item {
   background-color: #1c1c1eff !important;
 }
