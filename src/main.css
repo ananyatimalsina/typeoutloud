@@ -1,0 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Concert+One&family=Playwrite+IN:wght@100..400&display=swap");
+
+body {
+  background-color: #1c1c1eff;
+  color: white;
+  user-select: none;
+}
+
+.textTitle {
+  font-family: "Concert One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  text-align: center;
+}
