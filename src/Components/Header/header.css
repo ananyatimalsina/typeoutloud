@@ -1,0 +1,13 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settingsButton {
+  transition: transform 0.3s;
+}
+
+.settingsButton:hover {
+  transform: rotate(90deg);
+}

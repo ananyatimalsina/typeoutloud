@@ -6,6 +6,15 @@ body {
   user-select: none;
 }
 
+.iconBtn {
+  align-self: center;
+  font-size: 2.5rem;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
 .textTitle {
   font-family: "Concert One", sans-serif;
   font-weight: 400;

@@ -1,0 +1,12 @@
+.typingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dictationSolution {
+  background: transparent;
+  color: white;
+  resize: none;
+  width: 100%;
+}

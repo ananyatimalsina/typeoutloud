@@ -1,8 +1,5 @@
-import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import TypingScreen from "./Screens/TypingScreen";
+import TypingScreen from "./Screens/TypingScreen/typingscreen";
 import Header from "./Components/Header/header";
-import Footer from "./Components/Footer/footer";
 
 function App() {
   return (

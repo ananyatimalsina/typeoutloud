@@ -13,16 +13,16 @@ export default function Footer() {
 
   return (
     <div className="footerContainer">
-      <button className="footerItem">
+      <button className="iconBtn footerItem">
         <IoPlayBack />
       </button>
-      <button className="footerItem">
+      <button className="iconBtn footerItem">
         {isPlaying ? <IoPause /> : <IoPlay />}
       </button>
-      <button className="footerItem">
+      <button className="iconBtn footerItem">
         <MdReplay />
       </button>
-      <button className="footerItem">
+      <button className="iconBtn footerItem">
         <IoPlayForward />
       </button>
     </div>
