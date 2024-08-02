@@ -28,6 +28,12 @@ export default function TypingScreen() {
         name="dictationSolution"
         id="dictationSolution"
         style={{ height: height }}
+        onCopy={(e) => e.preventDefault()}
+        onPaste={(e) => e.preventDefault()}
+        onCut={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+        onDrop={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
       ></textarea>
       <Footer />
     </div>
