@@ -48,6 +48,7 @@ export default function Menu() {
         title="File"
         menuItems={[
           <MenuItem>New</MenuItem>,
+          <MenuItem>Open</MenuItem>,
           <MenuItem>Save</MenuItem>,
           <MenuItem>Exit</MenuItem>,
         ]}
