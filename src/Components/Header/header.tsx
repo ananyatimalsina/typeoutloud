@@ -1,5 +1,7 @@
 import { IoMdSettings } from "react-icons/io";
-import { GiHamburgerMenu } from "react-icons/gi";
+import Menu from "../Menu/menu";
+import "@szhsin/react-menu/dist/index.css";
+import "@szhsin/react-menu/dist/transitions/zoom.css";
 
 import "./header.css";
 
@@ -10,9 +12,9 @@ type HeaderProps = {
 export default function Header({ title }: HeaderProps) {
   return (
     <div className="headerContainer">
-      <button className="iconBtn ">
-        <GiHamburgerMenu />
-      </button>
+      <div className="Menu">
+        <Menu />
+      </div>
       <h1 className="textTitle" style={{ flexGrow: 1, textAlign: "center" }}>
         {title}
       </h1>

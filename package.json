@@ -10,8 +10,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@szhsin/react-menu": "^4.2.1",
     "@tauri-apps/api": "^1",
-    "rctx-contextmenu": "^1.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.2.1"
