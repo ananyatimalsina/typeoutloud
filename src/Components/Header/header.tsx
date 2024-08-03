@@ -7,18 +7,24 @@ import "./header.css";
 
 type HeaderProps = {
   title: string;
+  setSettings: (value: boolean) => void;
 };
 
-export default function Header({ title }: HeaderProps) {
+export default function Header({ title, setSettings }: HeaderProps) {
   return (
     <div className="headerContainer">
       <div className="Menu">
         <Menu />
       </div>
-      <h1 className="textTitle" style={{ flexGrow: 1, textAlign: "center" }}>
+      <h1 className="textTitle" style={{ flexGrow: 1 }}>
         {title}
       </h1>
-      <button className="iconBtn ">
+      <button
+        onClick={() => {
+          setSettings(true);
+        }}
+        className="iconBtn"
+      >
         <IoMdSettings className="settingsButton" />
       </button>
     </div>
