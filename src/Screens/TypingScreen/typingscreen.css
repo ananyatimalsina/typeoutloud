@@ -12,31 +12,3 @@
   color: white;
   resize: none;
 }
-
-.contextmenu {
-  background-color: #1c1c1eff !important;
-}
-
-.contextmenu__item::after {
-  border-color: transparent transparent transparent #fff !important;
-}
-
-.submenu:hover > .contextmenu__item::after {
-  border-color: transparent transparent transparent #000 !important;
-}
-
-.submenu:hover > .contextmenu__item {
-  color: black;
-}
-
-.contextmenu__item:hover {
-  color: black;
-}
-
-.contextmenu__item--disabled {
-  cursor: initial !important;
-}
-
-.submenu__item {
-  background-color: #1c1c1eff !important;
-}
