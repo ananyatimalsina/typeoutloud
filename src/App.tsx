@@ -10,7 +10,7 @@ function App() {
     <div className="container">
       <Header title="Der Bäcker" setSettings={setSettings} />
       <TypingScreen />
-      <Settings isOpen={settings} setIsOpen={setSettings} />
+      <Settings project={false} isOpen={settings} setIsOpen={setSettings} />
     </div>
   );
 }
