@@ -1,5 +1,5 @@
 import "./settings.css";
-import { IoClose, IoFolderOpen } from "react-icons/io5";
+import { IoClose, IoFolderOpen, IoRefresh } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import VoiceSelectMenu from "../../Components/VoiceSelectMenu/voiceselectmenu";
 import SettingsSlider from "../../Components/SettingsSlider/settingsslider";
@@ -19,7 +19,7 @@ export default function Settings({
   isOpen,
   setIsOpen,
 }: SettingsProps) {
-  const [voice, setVoice] = useState(localStorage.getItem("voice") || "enUS");
+  const [voice, setVoice] = useState(localStorage.getItem("voice") || "null");
   const [speechRate, setSpeechRate] = useState(
     Number(localStorage.getItem("speechRate")) || 50
   );
@@ -30,7 +30,7 @@ export default function Settings({
     Number(localStorage.getItem("speechVolume")) || 75
   );
 
-  var availableVoices: string[][] = [];
+  const [availableVoices, setAvailableVoices] = useState<string[][]>([]);
 
   const getAvailableVoices = async () => {
     const dirExists = await exists("voices", { dir: BaseDirectory.AppData });
@@ -45,10 +45,13 @@ export default function Settings({
     const entries = await readDir("voices", {
       dir: BaseDirectory.AppData,
       recursive: true,
-    }).catch(() => {
+    }).catch((err) => {
+      console.error(err);
       return [];
     });
 
+    var voices: string[][] = [];
+    var voice_exists = false;
     for (const entry of entries) {
       if (
         !entry.name?.endsWith(".onnx.json") &&
@@ -57,14 +60,23 @@ export default function Settings({
       ) {
         const voiceName = entry.name.replace(".onnx", "");
         if (voiceName) {
-          availableVoices.push([voiceName, entry.path]);
+          if (voiceName === voice) {
+            voice_exists = true;
+          }
+          voices.push([voiceName, entry.path]);
         }
       }
     }
+    if (!voice_exists) {
+      setVoice("null");
+    }
+    return voices;
   };
 
   useEffect(() => {
-    getAvailableVoices();
+    getAvailableVoices().then((voices) => {
+      setAvailableVoices(voices);
+    });
   }, []);
 
   const closeSettings = () => {
@@ -84,13 +96,13 @@ export default function Settings({
       <div
         onClick={closeSettings}
         style={{ display: isOpen ? "flex" : "none" }}
-        className="settingsOverlay"
+        className="screenOverlay"
       ></div>
       <div
         style={{ display: isOpen ? "flex" : "none" }}
-        className="settingsContainer"
+        className="screenContainer"
       >
-        <div className="settingsHeader">
+        <div className="screenHeader">
           <h2 className="textTitle" style={{ flexGrow: 1, marginLeft: "3rem" }}>
             {project ? "Project Settings" : "General Settings"}
           </h2>
@@ -114,7 +126,17 @@ export default function Settings({
                 const appDataDirPath = await appDataDir();
                 await open(appDataDirPath + "voices/");
               }}
-              style={{ marginLeft: "0.5rem", cursor: "pointer" }}
+              style={{
+                marginLeft: "0.5rem",
+                marginRight: "0.5rem",
+                cursor: "pointer",
+              }}
+            />
+            <IoRefresh
+              onClick={async () => {
+                setAvailableVoices(await getAvailableVoices());
+              }}
+              style={{ cursor: "pointer" }}
             />
           </div>
 

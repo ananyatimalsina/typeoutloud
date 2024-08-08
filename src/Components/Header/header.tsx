@@ -8,13 +8,18 @@ import "./header.css";
 type HeaderProps = {
   title: string;
   setSettings: (value: boolean) => void;
+  setNewFile: (value: boolean) => void;
 };
 
-export default function Header({ title, setSettings }: HeaderProps) {
+export default function Header({
+  title,
+  setSettings,
+  setNewFile,
+}: HeaderProps) {
   return (
     <div className="headerContainer">
       <div className="Menu">
-        <Menu />
+        <Menu setNewFile={setNewFile} />
       </div>
       <h1 className="textTitle" style={{ flexGrow: 1 }}>
         {title}

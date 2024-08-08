@@ -43,13 +43,23 @@ const HoverMenuWithTransition = ({
   );
 };
 
-export default function Menu() {
+type MenuProps = {
+  setNewFile: (value: boolean) => void;
+};
+
+export default function Menu({ setNewFile }: MenuProps) {
   return (
     <div className="Menu">
       <HoverMenuWithTransition
         title="File"
         menuItems={[
-          <MenuItem>New</MenuItem>,
+          <MenuItem
+            onClick={() => {
+              setNewFile(true);
+            }}
+          >
+            New
+          </MenuItem>,
           <MenuItem>Open</MenuItem>,
           <MenuItem
             onClick={async () => {

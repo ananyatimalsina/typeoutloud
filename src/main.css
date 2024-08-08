@@ -5,6 +5,9 @@ body {
   background-color: #1c1c1eff;
   color: white;
   user-select: none;
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .iconBtn {
@@ -14,6 +17,43 @@ body {
   background: none;
   border: none;
   cursor: pointer;
+}
+
+.screenContainer {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+  width: 30rem;
+  height: 30rem;
+  border: 0.3rem solid #fff;
+  border-radius: 0.5rem;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #1c1c1eff;
+}
+
+.screenOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.screenHeader {
+  display: flex;
+  flex-direction: row;
+  border-bottom: #fff 0.15rem solid;
+  height: 2.5rem;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .textTitle {
