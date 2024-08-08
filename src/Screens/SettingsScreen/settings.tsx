@@ -1,9 +1,12 @@
-import { Menu, MenuButton, MenuItem, MenuRadioGroup } from "@szhsin/react-menu";
 import "./settings.css";
-import { IoClose } from "react-icons/io5";
-import { useState } from "react";
+import { IoClose, IoFolderOpen } from "react-icons/io5";
+import { useEffect, useState } from "react";
 import VoiceSelectMenu from "../../Components/VoiceSelectMenu/voiceselectmenu";
 import SettingsSlider from "../../Components/SettingsSlider/settingsslider";
+
+import { readDir, createDir, exists, BaseDirectory } from "@tauri-apps/api/fs";
+import { appDataDir } from "@tauri-apps/api/path";
+import { open } from "@tauri-apps/api/shell";
 
 type SettingsProps = {
   project: boolean;
@@ -16,17 +19,70 @@ export default function Settings({
   isOpen,
   setIsOpen,
 }: SettingsProps) {
-  const [voice, setVoice] = useState("en-US");
-  const [speechRate, setSpeechRate] = useState(50);
-  const [speechPitch, setSpeechPitch] = useState(50);
-  const [speechVolume, setSpeechVolume] = useState(75);
+  const [voice, setVoice] = useState(localStorage.getItem("voice") || "enUS");
+  const [speechRate, setSpeechRate] = useState(
+    Number(localStorage.getItem("speechRate")) || 50
+  );
+  const [speechPitch, setSpeechPitch] = useState(
+    Number(localStorage.getItem("speechPitch")) || 50
+  );
+  const [speechVolume, setSpeechVolume] = useState(
+    Number(localStorage.getItem("speechVolume")) || 75
+  );
+
+  var availableVoices: string[][] = [];
+
+  const getAvailableVoices = async () => {
+    const dirExists = await exists("voices", { dir: BaseDirectory.AppData });
+
+    if (!dirExists) {
+      await createDir("voices", {
+        dir: BaseDirectory.AppData,
+        recursive: true,
+      });
+    }
+
+    const entries = await readDir("voices", {
+      dir: BaseDirectory.AppData,
+      recursive: true,
+    }).catch(() => {
+      return [];
+    });
+
+    for (const entry of entries) {
+      if (
+        !entry.name?.endsWith(".onnx.json") &&
+        !entry.children &&
+        entry.name?.endsWith(".onnx")
+      ) {
+        const voiceName = entry.name.replace(".onnx", "");
+        if (voiceName) {
+          availableVoices.push([voiceName, entry.path]);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    getAvailableVoices();
+  }, []);
+
+  const closeSettings = () => {
+    if (project) {
+    } else {
+      localStorage.setItem("voice", voice);
+      localStorage.setItem("speechRate", speechRate.toString());
+      localStorage.setItem("speechPitch", speechPitch.toString());
+      localStorage.setItem("speechVolume", speechVolume.toString());
+    }
+
+    setIsOpen(false);
+  };
 
   return (
     <>
       <div
-        onClick={() => {
-          setIsOpen(false);
-        }}
+        onClick={closeSettings}
         style={{ display: isOpen ? "flex" : "none" }}
         className="settingsOverlay"
       ></div>
@@ -38,12 +94,7 @@ export default function Settings({
           <h2 className="textTitle" style={{ flexGrow: 1, marginLeft: "3rem" }}>
             {project ? "Project Settings" : "General Settings"}
           </h2>
-          <button
-            className="iconBtn"
-            onClick={() => {
-              setIsOpen(false);
-            }}
-          >
+          <button className="iconBtn" onClick={closeSettings}>
             <IoClose />
           </button>
         </div>
@@ -56,7 +107,14 @@ export default function Settings({
             <VoiceSelectMenu
               voice={voice}
               setVoice={setVoice}
-              avilableVoices={["enUS", "nep", "in", "deDE"]}
+              avilableVoices={availableVoices}
+            />
+            <IoFolderOpen
+              onClick={async () => {
+                const appDataDirPath = await appDataDir();
+                await open(appDataDirPath + "voices/");
+              }}
+              style={{ marginLeft: "0.5rem", cursor: "pointer" }}
             />
           </div>
 

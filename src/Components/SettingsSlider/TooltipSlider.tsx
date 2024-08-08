@@ -18,7 +18,7 @@ const HandleTooltip: React.FC<HandleTooltipProps> = (props) => {
     value,
     children,
     visible,
-    tipFormatter = (val) => `${val}`,
+    tipFormatter = (val) => val,
     ...restProps
   } = props;
 

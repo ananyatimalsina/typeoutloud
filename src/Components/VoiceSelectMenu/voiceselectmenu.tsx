@@ -11,7 +11,7 @@ import "@szhsin/react-menu/dist/index.css";
 type VoiceSelectMenuProps = {
   voice: string;
   setVoice: (value: string) => void;
-  avilableVoices: string[];
+  avilableVoices: string[][];
 };
 
 export default function VoiceSelectMenu({
@@ -44,11 +44,11 @@ export default function VoiceSelectMenu({
       <MenuRadioGroup value={voice} onRadioChange={(e) => setVoice(e.value)}>
         {avilableVoices
           .filter((voice) =>
-            voice.toUpperCase().includes(filter.trim().toUpperCase())
+            voice[0].toUpperCase().includes(filter.trim().toUpperCase())
           )
           .map((voice) => (
-            <MenuItem type="radio" value={voice} key={voice}>
-              {voice}
+            <MenuItem type="radio" value={voice[0]} key={voice[0]}>
+              {voice[0]}
             </MenuItem>
           ))}
       </MenuRadioGroup>

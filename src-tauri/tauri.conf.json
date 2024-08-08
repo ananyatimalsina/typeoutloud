@@ -12,9 +12,24 @@
   "tauri": {
     "allowlist": {
       "all": false,
-      "shell": {
+      "fs": {
         "all": false,
-        "open": true
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "createDir": true,
+        "exists": true,
+        "scope": ["$APPDATA/voices", "$HOME/*"]
+      },
+      "path": {
+        "all": true
+      },
+      "process": {
+        "all": false,
+        "exit": true
+      },
+      "shell": {
+        "all": true
       }
     },
     "windows": [

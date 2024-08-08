@@ -8,6 +8,8 @@ import {
 import "@szhsin/react-menu/dist/index.css";
 import "@szhsin/react-menu/dist/transitions/zoom.css";
 
+import { exit } from "@tauri-apps/api/process";
+
 import "./menu.css";
 
 type HoverMenuWithTransitionProps = {
@@ -49,8 +51,13 @@ export default function Menu() {
         menuItems={[
           <MenuItem>New</MenuItem>,
           <MenuItem>Open</MenuItem>,
-          <MenuItem>Save</MenuItem>,
-          <MenuItem>Exit</MenuItem>,
+          <MenuItem
+            onClick={async () => {
+              await exit(0);
+            }}
+          >
+            Exit
+          </MenuItem>,
         ]}
       />
     </div>

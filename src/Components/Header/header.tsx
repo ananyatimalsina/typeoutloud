@@ -19,14 +19,12 @@ export default function Header({ title, setSettings }: HeaderProps) {
       <h1 className="textTitle" style={{ flexGrow: 1 }}>
         {title}
       </h1>
-      <button
+      <IoMdSettings
         onClick={() => {
           setSettings(true);
         }}
-        className="iconBtn"
-      >
-        <IoMdSettings className="settingsButton" />
-      </button>
+        className="iconBtn settingsButton"
+      />
     </div>
   );
 }

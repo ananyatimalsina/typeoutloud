@@ -9,6 +9,10 @@
   border-top: 0.3rem solid white;
 }
 
-.footerItem svg:hover {
+.footerItem {
+  margin: 0.5rem;
+}
+
+.footerItem:hover {
   filter: drop-shadow(0 0 0.3rem rgba(255, 255, 255));
 }
