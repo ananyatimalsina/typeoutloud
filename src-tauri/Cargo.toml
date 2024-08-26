@@ -11,12 +11,14 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "shell-all", "fs-exists", "process-exit", "path-all", "fs-create-dir", "fs-read-file", "fs-write-file", "fs-read-dir"] }
+tauri = { version = "1", features = [ "dialog-save", "dialog-open", "shell-all", "fs-exists", "process-exit", "path-all", "fs-create-dir", "fs-read-file", "fs-write-file", "fs-read-dir"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1.0.63"
 sonata-piper = { git="https://github.com/mush42/sonata/" }
 sonata-synth = { git="https://github.com/mush42/sonata/" }
+audio-ops = { git="https://github.com/mush42/sonata/" }
+rodio = "0.19.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

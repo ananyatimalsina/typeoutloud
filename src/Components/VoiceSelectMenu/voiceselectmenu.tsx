@@ -10,20 +10,16 @@ import "@szhsin/react-menu/dist/index.css";
 
 type VoiceSelectMenuProps = {
   voice: string;
-  setVoice: (value: string) => void;
-  avilableVoices: string[][];
+  handleVoiceChange: (value: string) => void;
+  avilableVoices: string[];
 };
 
 export default function VoiceSelectMenu({
   voice,
-  setVoice,
+  handleVoiceChange,
   avilableVoices,
 }: VoiceSelectMenuProps) {
   const [filter, setFilter] = useState("");
-
-  useEffect(() => {
-    console.log("Voice changed to: ", voice);
-  }, [voice]);
 
   return (
     <Menu
@@ -41,14 +37,17 @@ export default function VoiceSelectMenu({
           />
         )}
       </FocusableItem>
-      <MenuRadioGroup value={voice} onRadioChange={(e) => setVoice(e.value)}>
+      <MenuRadioGroup
+        value={voice}
+        onRadioChange={(e) => handleVoiceChange(e.value)}
+      >
         {avilableVoices
           .filter((voice) =>
-            voice[0].toUpperCase().includes(filter.trim().toUpperCase())
+            voice.toUpperCase().includes(filter.trim().toUpperCase())
           )
           .map((voice) => (
-            <MenuItem type="radio" value={voice[0]} key={voice[0]}>
-              {voice[0]}
+            <MenuItem type="radio" value={voice} key={voice}>
+              {voice}
             </MenuItem>
           ))}
       </MenuRadioGroup>

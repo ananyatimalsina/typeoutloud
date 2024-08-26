@@ -19,7 +19,12 @@
         "readDir": true,
         "createDir": true,
         "exists": true,
-        "scope": ["$APPDATA/voices", "$HOME/*"]
+        "scope": ["$APPDATA/voices", "$APPDATA/temp", "$HOME/*"]
+      },
+      "dialog": {
+        "all": false,
+        "open": true,
+        "save": true
       },
       "path": {
         "all": true

@@ -1,0 +1,38 @@
+.createBtn {
+  margin: 1rem;
+  cursor: pointer;
+  border: 0.15rem solid white;
+  color: white;
+  background-color: transparent;
+  max-width: fit-content;
+  align-self: center;
+  font-size: 1rem;
+}
+
+.createBtn:hover {
+  background-color: white;
+  color: black;
+}
+
+input.error {
+  border: 0.15rem solid red;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-10px);
+  }
+  40%,
+  80% {
+    transform: translateX(10px);
+  }
+}
+
+.singularSettingContainer.error {
+  animation: shake 0.5s;
+}
