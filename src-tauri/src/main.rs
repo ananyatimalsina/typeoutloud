@@ -2,6 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::fs::File;
+use std::fs::create_dir_all;
+use std::io::Read;
 use std::path::PathBuf;
 use std::{str::Split, path::Path};
 use std::result::Result;
@@ -44,7 +46,15 @@ struct AudioConfig {
 // TODO: Fix the generated audio being sterio and only audible on the left ear
 #[tauri::command(async)]
 fn synthesize_to_file(app_handle: tauri::AppHandle, text: &str, output_path: &str, config: AudioConfig) -> Result<bool, SynthesisError> {
-    let text_list: Split<&str> = text.split(". ");
+    create_dir_all(output_path).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+
+    let mut file = File::open(Path::new(text)).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+    let mut content = String::new();
+    file.read_to_string(&mut content).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+
+    let cleaned_content = content.replace("\n", " ").replace("\r", "");
+
+    let text_list: Split<&str> = cleaned_content.split(". ");
 
     let synth: SonataSpeechSynthesizer = {
         let app_data_dir: PathBuf = app_handle.path_resolver().app_data_dir().unwrap();

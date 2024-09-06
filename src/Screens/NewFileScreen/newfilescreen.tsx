@@ -8,10 +8,12 @@ import { homeDir } from "@tauri-apps/api/path";
 
 import "./newfilescreen.css";
 import { exists } from "@tauri-apps/api/fs";
+import { invoke } from "@tauri-apps/api";
 
 interface NewFileScreenProps {
   defaultSettings: AudioConfig;
   setNewFile: (value: boolean) => void;
+  setLoading: (value: boolean) => void;
   availableVoices: string[];
   setAvailableVoices: (value: string[]) => void;
 }
@@ -19,6 +21,7 @@ interface NewFileScreenProps {
 export default function NewFileScreen({
   defaultSettings,
   setNewFile,
+  setLoading,
   availableVoices,
   setAvailableVoices,
 }: NewFileScreenProps) {
@@ -168,7 +171,19 @@ export default function NewFileScreen({
             }
 
             if (!isError) {
-              console.log("Creating project...");
+              closeNewFile();
+              setLoading(true);
+              invoke("synthesize_to_file", {
+                text: textUrl,
+                outputPath: location + "/" + title + "/",
+                config: settings,
+              })
+                .catch((e) => {
+                  console.error(e);
+                })
+                .then(() => {
+                  setLoading(false);
+                });
             }
           }}
         >
