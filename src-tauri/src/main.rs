@@ -1,25 +1,22 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs::File;
-use std::fs::create_dir_all;
-use std::io::Read;
-use std::path::PathBuf;
-use std::{str::Split, path::Path};
+use std::fs::{File, create_dir_all};
+use std::io::{Read, Write, BufReader, Cursor};
+use std::path::{Path, PathBuf};
 use std::result::Result;
+use std::error::Error;
+
 use audio_ops::{AudioInfo, WaveWriterError};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::to_string_pretty;
 use thiserror::Error;
 
 use sonata_piper::from_config_path;
-use sonata_synth::{
-    AudioOutputConfig, AudioSamples, SonataError, SonataSpeechSynthesizer
-};
+use sonata_synth::{AudioOutputConfig, AudioSamples, SonataError, SonataSpeechSynthesizer};
 
 use rodio::{Decoder, OutputStream, Sink, source::Source};
-use std::io::BufReader;
-use std::io::Cursor;
-use std::error::Error;
 
 #[derive(Debug, Error, Serialize)]
 enum SynthesisError {
@@ -43,18 +40,27 @@ struct AudioConfig {
     speech_volume: u8,
 }
 
-// TODO: Fix the generated audio being sterio and only audible on the left ear
+#[derive(Serialize, Deserialize)]
+struct Project {
+    title: String,
+    text: String,
+    audios: Vec<String>
+}
+
+// TODO: Fix the generated audio being stereo and only audible on the left ear and wired error when splitting commas, thus resulting in larger batch sizes
 #[tauri::command(async)]
-fn synthesize_to_file(app_handle: tauri::AppHandle, text: &str, output_path: &str, config: AudioConfig) -> Result<bool, SynthesisError> {
+fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, output_path: &str, config: AudioConfig) -> Result<Project, SynthesisError> {
     create_dir_all(output_path).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
 
-    let mut file = File::open(Path::new(text)).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+    let mut file = File::open(Path::new(&project.text)).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
     let mut content = String::new();
     file.read_to_string(&mut content).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
 
     let cleaned_content = content.replace("\n", " ").replace("\r", "");
 
-    let text_list: Split<&str> = cleaned_content.split(". ");
+    let re = Regex::new(r"[.!?] ").unwrap();
+
+    let text_list: Vec<&str> = re.split(&cleaned_content).collect();
 
     let synth: SonataSpeechSynthesizer = {
         let app_data_dir: PathBuf = app_handle.path_resolver().app_data_dir().unwrap();
@@ -68,7 +74,7 @@ fn synthesize_to_file(app_handle: tauri::AppHandle, text: &str, output_path: &st
 
     let mut i: i32 = 0;
     for sentence in text_list {
-        let output_file_path: String = format!("{}/{}.wav", output_path, i);
+        let output_file_path: String = format!("{}{}.wav", output_path, i);
         synth.synthesize_to_file(Path::new(&output_file_path), format!("{}.", sentence), Some(AudioOutputConfig {
             rate: Some(config.speech_rate),
             volume: Some(config.speech_volume),
@@ -76,10 +82,22 @@ fn synthesize_to_file(app_handle: tauri::AppHandle, text: &str, output_path: &st
             appended_silence_ms: Some(0),
         }))
             .map_err(|e: SonataError| SynthesisError::SynthesisError(e.to_string()))?;
+        project.audios.push(output_file_path);
         i += 1;
     }
 
-    Ok(true)
+    // Create a json file with the title, text and audio file paths
+    project.text = cleaned_content;
+
+    let mut json_file = File::create(Path::new(&format!("{}{}.tol", output_path, project.title)))
+        .map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+
+    let json_string = to_string_pretty(&project).unwrap();
+
+    json_file.write_all(json_string.as_bytes())
+        .map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+
+    Ok(project)
 }
 
 #[tauri::command(async)]
@@ -137,6 +155,17 @@ fn synthesize_and_play(app_handle: tauri::AppHandle, text: String, config: Audio
     Ok(true)
 }
 
+#[tauri::command]
+fn open_project(project_path: String) -> Result<Project, String> {
+    let mut file = File::open(Path::new(&project_path)).map_err(|err| err.to_string())?;
+    let mut content = String::new();
+    file.read_to_string(&mut content).map_err(|err| err.to_string())?;
+
+    let project: Project = serde_json::from_str(&content).map_err(|err| err.to_string())?;
+
+    Ok(project)
+}
+
 fn play_audio(file: File) -> Result<(), Box<dyn Error>> {
     // Create an output stream to play audio
     let (_stream, stream_handle) = OutputStream::try_default()?;
@@ -158,7 +187,7 @@ fn play_audio(file: File) -> Result<(), Box<dyn Error>> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![synthesize_to_file, synthesize_and_play])
+        .invoke_handler(tauri::generate_handler![synthesize_to_file, synthesize_and_play, open_project])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

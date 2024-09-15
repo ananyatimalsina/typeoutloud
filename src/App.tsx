@@ -6,9 +6,14 @@ import NewFileScreen from "./Screens/NewFileScreen/newfilescreen";
 import AudioConfig from "./Models/AudioConfig";
 
 import BeatLoader from "react-spinners/BeatLoader";
+import Project from "./Models/Project";
 
 function App() {
-  const [title, setTitle] = useState("TypeOutLoud");
+  const [project, setProject] = useState<Project>({
+    title: "TypeOutLoud",
+    text: "",
+    audios: [],
+  });
 
   const [settings, setSettings] = useState(false);
   const [newFile, setNewFile] = useState(false);
@@ -32,7 +37,12 @@ function App() {
 
   return (
     <div className="container">
-      <Header title={title} setSettings={setSettings} setNewFile={setNewFile} />
+      <Header
+        title={project.title}
+        setSettings={setSettings}
+        setNewFile={setNewFile}
+        setProject={setProject}
+      />
       <TypingScreen />
       <Settings
         defaultSettings={defaultSettings}
@@ -48,6 +58,7 @@ function App() {
           defaultSettings={defaultSettings}
           setNewFile={setNewFile}
           setLoading={setLoading}
+          setProject={setProject}
           availableVoices={availableVoices}
           setAvailableVoices={setAvailableVoices}
         />
@@ -58,6 +69,7 @@ function App() {
         cssOverride={override}
         loading={loading}
         size={30}
+        speedMultiplier={0.5}
         aria-label="Loading Spinner"
         data-testid="loader"
       />

@@ -8,9 +8,13 @@ import {
 import "@szhsin/react-menu/dist/index.css";
 import "@szhsin/react-menu/dist/transitions/zoom.css";
 
+import { invoke } from "@tauri-apps/api";
+import { open } from "@tauri-apps/api/dialog";
+import { homeDir } from "@tauri-apps/api/path";
 import { exit } from "@tauri-apps/api/process";
 
 import "./menu.css";
+import Project from "../../Models/Project";
 
 type HoverMenuWithTransitionProps = {
   title: string;
@@ -45,9 +49,10 @@ const HoverMenuWithTransition = ({
 
 type MenuProps = {
   setNewFile: (value: boolean) => void;
+  setProject: React.Dispatch<React.SetStateAction<Project>>;
 };
 
-export default function Menu({ setNewFile }: MenuProps) {
+export default function Menu({ setNewFile, setProject }: MenuProps) {
   return (
     <div className="Menu">
       <HoverMenuWithTransition
@@ -60,7 +65,33 @@ export default function Menu({ setNewFile }: MenuProps) {
           >
             New
           </MenuItem>,
-          <MenuItem>Open</MenuItem>,
+          <MenuItem
+            onClick={async () => {
+              const selected = await open({
+                directory: false,
+                multiple: false,
+                filters: [
+                  { name: "TypeOutLoud Project files", extensions: ["tol"] },
+                ],
+                title: "Select a Project",
+                defaultPath: await homeDir(),
+              });
+
+              if (selected && !Array.isArray(selected)) {
+                invoke("open_project", {
+                  projectPath: selected,
+                })
+                  .catch((e) => {
+                    console.error(e);
+                  })
+                  .then((res) => {
+                    setProject(res as Project);
+                  });
+              }
+            }}
+          >
+            Open
+          </MenuItem>,
           <MenuItem
             onClick={async () => {
               await exit(0);
