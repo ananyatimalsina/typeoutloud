@@ -9,12 +9,6 @@ import BeatLoader from "react-spinners/BeatLoader";
 import Project from "./Models/Project";
 
 function App() {
-  const [project, setProject] = useState<Project>({
-    title: "TypeOutLoud",
-    text: "",
-    audios: [],
-  });
-
   const [settings, setSettings] = useState(false);
   const [newFile, setNewFile] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +29,14 @@ function App() {
     speech_volume: Number(localStorage.getItem("speech_volume")) || 75,
   });
 
+  const [project, setProject] = useState<Project>({
+    title: "TypeOutLoud",
+    text: "",
+    audios: [],
+    settings: defaultSettings,
+    path: "",
+  });
+
   return (
     <div className="container">
       <Header
@@ -47,11 +49,19 @@ function App() {
       <Settings
         defaultSettings={defaultSettings}
         setDefaultSettings={setDefaultSettings}
-        project={false}
+        project={
+          project.title === "TypeOutLoud" &&
+          project.text == "" &&
+          project.settings == defaultSettings
+            ? null && project.path == ""
+            : project
+        }
+        setProject={setProject}
         isOpen={settings}
         setIsOpen={setSettings}
         availableVoices={availableVoices}
         setAvailableVoices={setAvailableVoices}
+        setLoading={setLoading}
       />
       {newFile ? (
         <NewFileScreen

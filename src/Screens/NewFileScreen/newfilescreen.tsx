@@ -152,6 +152,8 @@ export default function NewFileScreen({
         <SettingsSubScreen
           settings={settings}
           setSettings={setSettings}
+          project={null}
+          setProject={setProject}
           availableVoices={availableVoices}
           setAvailableVoices={setAvailableVoices}
         />
@@ -177,9 +179,14 @@ export default function NewFileScreen({
               closeNewFile();
               setLoading(true);
               invoke("synthesize_to_file", {
-                project: { title: title, text: textUrl, audios: [] },
-                outputPath: location + "/" + title + "/",
-                config: settings,
+                project: {
+                  title: title,
+                  text: textUrl,
+                  audios: [],
+                  settings: settings,
+                  path: location + "/" + title + "/",
+                },
+                redo: false,
               })
                 .catch((e) => {
                   console.error(e);

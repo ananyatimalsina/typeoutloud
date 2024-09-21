@@ -1,14 +1,17 @@
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { handleRender } from "./TooltipSlider";
+import AudioConfig from "../../Models/AudioConfig";
 
 type SettingsSliderProps = {
   setting: number;
-  setSetting: (value: number) => void;
+  variable: keyof AudioConfig;
+  setSetting: <K extends keyof AudioConfig>(variable: K, e: number) => void;
 };
 
 export default function SettingsSlider({
   setting,
+  variable,
   setSetting,
 }: SettingsSliderProps) {
   return (
@@ -20,9 +23,9 @@ export default function SettingsSlider({
         value={setting}
         onChange={(e) => {
           if (Array.isArray(e)) {
-            setSetting(e[0]);
+            setSetting(variable, e[0]);
           } else {
-            setSetting(e);
+            setSetting(variable, e);
           }
         }}
       />

@@ -9,10 +9,13 @@ import { useEffect, useState } from "react";
 
 import "./settingssubscreen.css";
 import { invoke } from "@tauri-apps/api/tauri";
+import Project from "../../Models/Project";
 
 interface SettingsSubScreenProps {
   settings: AudioConfig;
   setSettings: React.Dispatch<React.SetStateAction<AudioConfig>>;
+  project: Project | null;
+  setProject: React.Dispatch<React.SetStateAction<Project>>;
   availableVoices: string[];
   setAvailableVoices: (value: string[]) => void;
 }
@@ -20,6 +23,8 @@ interface SettingsSubScreenProps {
 export default function SettingsSubScreen({
   settings,
   setSettings,
+  project,
+  setProject,
   availableVoices,
   setAvailableVoices,
 }: SettingsSubScreenProps) {
@@ -57,34 +62,70 @@ export default function SettingsSubScreen({
         !entry.name?.endsWith(".onnx")
       ) {
         const voiceName = entry.name.replace(".onnx.json", "");
-        if (voiceName) {
-          if (voiceName === settings.voice) {
-            voice_exists = true;
-          }
-          voices.push(voiceName);
+        if (
+          (voiceName && project && voiceName === project.settings.voice) ||
+          (voiceName && voiceName === settings.voice)
+        ) {
+          voice_exists = true;
         }
+
+        voices.push(voiceName);
       }
     }
-    if (!voice_exists) {
+    if (!voice_exists && project) {
+      setProject((prev) => ({
+        ...prev,
+        settings: { ...prev.settings, voice: "null" },
+      }));
+    } else if (!voice_exists) {
       setSettings((prev) => ({ ...prev, voice: "null" }));
     }
     return voices;
   };
 
   const handleVoiceChange = (e: string) => {
-    setSettings((prev) => ({ ...prev, voice: e }));
+    if (project) {
+      setProject((prev) => ({
+        ...prev,
+        settings: { ...prev.settings, voice: e },
+      }));
+    } else {
+      setSettings((prev) => ({ ...prev, voice: e }));
+    }
   };
 
-  const handleSpeechRateChange = (e: number) => {
-    setSettings((prev) => ({ ...prev, speech_rate: e }));
+  const handleSpeechPropertyChange = <K extends keyof AudioConfig>(
+    variable: K,
+    e: number
+  ) => {
+    if (project) {
+      setProject((prev) => ({
+        ...prev,
+        settings: { ...prev.settings, [variable]: e },
+      }));
+    } else {
+      setSettings((prev) => ({ ...prev, [variable]: e }));
+    }
   };
 
-  const handlespeech_pitchChange = (e: number) => {
-    setSettings((prev) => ({ ...prev, speech_pitch: e }));
-  };
-
-  const handlespeech_volumeChange = (e: number) => {
-    setSettings((prev) => ({ ...prev, speech_volume: e }));
+  const buildSettingsSlider = <K extends keyof AudioConfig>(variable: K) => {
+    if (project) {
+      return (
+        <SettingsSlider
+          setting={project.settings[variable] as number}
+          variable={variable}
+          setSetting={handleSpeechPropertyChange}
+        />
+      );
+    } else {
+      return (
+        <SettingsSlider
+          setting={settings[variable] as number}
+          variable={variable}
+          setSetting={handleSpeechPropertyChange}
+        />
+      );
+    }
   };
 
   useEffect(() => {
@@ -105,7 +146,7 @@ export default function SettingsSubScreen({
         <div className="singularSettingContainer" style={{ width: "auto" }}>
           <span className="singularSettingName">Voice:</span>
           <VoiceSelectMenu
-            voice={settings.voice}
+            voice={project ? project.settings.voice : settings.voice}
             handleVoiceChange={handleVoiceChange}
             avilableVoices={availableVoices}
           />
@@ -131,26 +172,17 @@ export default function SettingsSubScreen({
 
         <div className="singularSettingContainer">
           <span className="singularSettingName">Speech Rate:</span>
-          <SettingsSlider
-            setting={settings.speech_rate}
-            setSetting={handleSpeechRateChange}
-          />
+          {buildSettingsSlider("speech_rate")}
         </div>
 
         <div className="singularSettingContainer">
           <span className="singularSettingName">Speech Pitch:</span>
-          <SettingsSlider
-            setting={settings.speech_pitch}
-            setSetting={handlespeech_pitchChange}
-          />
+          {buildSettingsSlider("speech_pitch")}
         </div>
 
         <div className="singularSettingContainer">
           <span className="singularSettingName">Speech Volume:</span>
-          <SettingsSlider
-            setting={settings.speech_volume}
-            setSetting={handlespeech_volumeChange}
-          />
+          {buildSettingsSlider("speech_volume")}
         </div>
 
         <div className="singularSettingContainer">

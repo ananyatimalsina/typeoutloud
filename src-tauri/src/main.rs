@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs::{File, create_dir_all};
+use std::fs::{File, create_dir_all, OpenOptions};
 use std::io::{Read, Write, BufReader, Cursor};
 use std::path::{Path, PathBuf};
 use std::result::Result;
@@ -32,7 +32,7 @@ impl From<WaveWriterError> for SynthesisError {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct AudioConfig {
     voice: String,
     speech_rate: u8,
@@ -40,24 +40,32 @@ struct AudioConfig {
     speech_volume: u8,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct Project {
     title: String,
     text: String,
-    audios: Vec<String>
+    audios: Vec<String>,
+    settings: AudioConfig,
+    path: String,
 }
 
 // TODO: Fix the generated audio being stereo and only audible on the left ear and wired error when splitting commas, thus resulting in larger batch sizes
 #[tauri::command(async)]
-fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, output_path: &str, config: AudioConfig) -> Result<Project, SynthesisError> {
-    create_dir_all(output_path).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, redo: bool) -> Result<Project, SynthesisError> {
+    let cleaned_content: String;
 
-    let mut file = File::open(Path::new(&project.text)).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
-    let mut content = String::new();
-    file.read_to_string(&mut content).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+    if !redo {
+        create_dir_all(project.path.clone()).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
 
-    let cleaned_content = content.replace("\n", " ").replace("\r", "");
+        let mut file = File::open(Path::new(&project.text)).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+        let mut content = String::new();
+        file.read_to_string(&mut content).map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
 
+        cleaned_content = content.replace("\n", " ").replace("\r", "");
+    } else {
+        cleaned_content = project.text.clone();
+    }
+    
     let re = Regex::new(r"[.!?] ").unwrap();
 
     let text_list: Vec<&str> = re.split(&cleaned_content).collect();
@@ -65,7 +73,7 @@ fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, output
     let synth: SonataSpeechSynthesizer = {
         let app_data_dir: PathBuf = app_handle.path_resolver().app_data_dir().unwrap();
         let app_data_dir_str: &str = app_data_dir.to_str().ok_or_else(|| SynthesisError::ConfigError("Invalid app data directory".to_string()))?;
-        let voice_path: String = format!("{}/voices/{}.onnx.json", app_data_dir_str, config.voice);
+        let voice_path: String = format!("{}/voices/{}.onnx.json", app_data_dir_str, project.settings.voice);
         let voice = from_config_path(Path::new(&voice_path))
             .map_err(|e: SonataError| SynthesisError::ConfigError(e.to_string()))?;
         SonataSpeechSynthesizer::new(voice)
@@ -74,11 +82,11 @@ fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, output
 
     let mut i: i32 = 0;
     for sentence in text_list {
-        let output_file_path: String = format!("{}{}.wav", output_path, i);
+        let output_file_path: String = format!("{}{}.wav", project.path, i);
         synth.synthesize_to_file(Path::new(&output_file_path), format!("{}.", sentence), Some(AudioOutputConfig {
-            rate: Some(config.speech_rate),
-            volume: Some(config.speech_volume),
-            pitch: Some(config.speech_pitch),
+            rate: Some(project.settings.speech_rate),
+            volume: Some(project.settings.speech_volume),
+            pitch: Some(project.settings.speech_pitch),
             appended_silence_ms: Some(0),
         }))
             .map_err(|e: SonataError| SynthesisError::SynthesisError(e.to_string()))?;
@@ -87,15 +95,11 @@ fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, output
     }
 
     // Create a json file with the title, text and audio file paths
-    project.text = cleaned_content;
+    if !redo {
+        project.text = cleaned_content;
+    }
 
-    let mut json_file = File::create(Path::new(&format!("{}{}.tol", output_path, project.title)))
-        .map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
-
-    let json_string = to_string_pretty(&project).unwrap();
-
-    json_file.write_all(json_string.as_bytes())
-        .map_err(|e| SynthesisError::SynthesisError(e.to_string()))?;
+    save_project(project.clone()).map_err(|e| SynthesisError::SynthesisError(e))?;
 
     Ok(project)
 }
@@ -164,6 +168,20 @@ fn open_project(project_path: String) -> Result<Project, String> {
     let project: Project = serde_json::from_str(&content).map_err(|err| err.to_string())?;
 
     Ok(project)
+}
+
+fn save_project(project: Project) -> Result<(), String> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(Path::new(&format!("{}{}.tol", project.path, project.title)))
+        .map_err(|err| err.to_string())?;
+    
+    let json_string = to_string_pretty(&project).unwrap();
+    file.write_all(json_string.as_bytes()).map_err(|err| err.to_string())?;
+
+    Ok(())
 }
 
 fn play_audio(file: File) -> Result<(), Box<dyn Error>> {

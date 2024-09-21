@@ -1,30 +1,48 @@
 import "./settings.css";
 import { IoClose } from "react-icons/io5";
-import { invoke } from "@tauri-apps/api/tauri";
 import AudioConfig from "../../Models/AudioConfig";
 import SettingsSubScreen from "../../Components/SettingsSubScreen/settingssubscreen";
+import Project from "../../Models/Project";
+import { invoke } from "@tauri-apps/api";
 
 type SettingsProps = {
   defaultSettings: AudioConfig;
   setDefaultSettings: React.Dispatch<React.SetStateAction<AudioConfig>>;
-  project: boolean;
+  project: Project | null;
+  setProject: React.Dispatch<React.SetStateAction<Project>>;
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
   availableVoices: string[];
   setAvailableVoices: (value: string[]) => void;
+  setLoading: (value: boolean) => void;
 };
 
 export default function Settings({
+  project,
+  setProject,
   defaultSettings,
   setDefaultSettings,
-  project,
   isOpen,
   setIsOpen,
   availableVoices,
   setAvailableVoices,
+  setLoading,
 }: SettingsProps) {
   const closeSettings = () => {
     if (project) {
+      setIsOpen(false);
+      setLoading(true);
+      invoke("synthesize_to_file", {
+        project: project,
+        redo: true,
+      })
+        .catch((e) => {
+          console.error(e);
+        })
+        .then((res) => {
+          setProject(res as Project);
+          setLoading(false);
+        });
     } else {
       localStorage.setItem("voice", defaultSettings.voice);
       localStorage.setItem(
@@ -39,9 +57,8 @@ export default function Settings({
         "speech_volume",
         defaultSettings.speech_volume.toString()
       );
+      setIsOpen(false);
     }
-
-    setIsOpen(false);
   };
 
   return (
@@ -64,6 +81,8 @@ export default function Settings({
         <SettingsSubScreen
           settings={defaultSettings}
           setSettings={setDefaultSettings}
+          project={project}
+          setProject={setProject}
           availableVoices={availableVoices}
           setAvailableVoices={setAvailableVoices}
         />
