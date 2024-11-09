@@ -1,11 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod audio_service;
+use audio_service::{AudioEvent, AudioService};
+use tokio::sync::broadcast::Sender;
+
 use std::fs::{File, create_dir_all, OpenOptions};
-use std::io::{Read, Write, BufReader, Cursor};
+use std::io::{Read, Write, Cursor};
 use std::path::{Path, PathBuf};
 use std::result::Result;
-use std::error::Error;
 
 use audio_ops::{AudioInfo, WaveWriterError};
 use regex::Regex;
@@ -16,7 +19,7 @@ use thiserror::Error;
 use sonata_piper::from_config_path;
 use sonata_synth::{AudioOutputConfig, AudioSamples, SonataError, SonataSpeechSynthesizer};
 
-use rodio::{Decoder, OutputStream, Sink, source::Source};
+use rodio::{Decoder, OutputStream, Sink};
 
 #[derive(Debug, Error, Serialize)]
 enum SynthesisError {
@@ -49,7 +52,7 @@ struct Project {
     path: String,
 }
 
-// TODO: Fix the generated audio being stereo and only audible on the left ear and wired error when splitting commas, thus resulting in larger batch sizes
+// TODO: Fix the wired error when splitting commas, thus resulting in larger batch sizes
 #[tauri::command(async)]
 fn synthesize_to_file(app_handle: tauri::AppHandle, mut project: Project, redo: bool) -> Result<Project, SynthesisError> {
     let cleaned_content: String;
@@ -170,6 +173,25 @@ fn open_project(project_path: String) -> Result<Project, String> {
     Ok(project)
 }
 
+/// Receive events sent by the front end, encapsulate them as [`AudioEvent`] and send them to the channel.
+#[tauri::command]
+fn handle_event(sender: tauri::State<Sender<AudioEvent>>, event: String) {
+    let event: serde_json::Value = serde_json::from_str(&event).unwrap();
+    if let Some(action) = event["action"].as_str() {
+        match action {
+            "play" => event["file_path"]
+                .as_str()
+                .map(|file_path| sender.send(AudioEvent::Play(file_path.to_owned()))),
+            "pause" => Some(sender.send(AudioEvent::Pause)),
+            "recovery" => Some(sender.send(AudioEvent::Recovery)),
+            "volume" => event["volume"]
+                .as_f64()
+                .map(|volume| sender.send(AudioEvent::Volume(volume as f32))),
+            _ => None, // other actions
+        };
+    }
+}
+
 fn save_project(project: Project) -> Result<(), String> {
     let mut file = OpenOptions::new()
         .write(true)
@@ -184,28 +206,13 @@ fn save_project(project: Project) -> Result<(), String> {
     Ok(())
 }
 
-fn play_audio(file: File) -> Result<(), Box<dyn Error>> {
-    // Create an output stream to play audio
-    let (_stream, stream_handle) = OutputStream::try_default()?;
-    
-    // Load the WAV file
-    let decoder = Decoder::new(BufReader::new(file))?;
-    
-    // Get the total duration before moving the decoder
-    let duration = decoder.total_duration().unwrap().as_secs_f32();
-
-    // Play the audio
-    stream_handle.play_raw(decoder.convert_samples())?;
-
-    // Block the main thread until the sound has finished playing
-    std::thread::sleep(std::time::Duration::from_secs_f32(duration));
-
-    Ok(())
-}
-
-fn main() {
+#[tokio::main]
+async fn main() {
+    let audio_service: AudioService = AudioService::new();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![synthesize_to_file, synthesize_and_play, open_project])
+        .invoke_handler(tauri::generate_handler![synthesize_to_file, synthesize_and_play, open_project, handle_event])
+        .manage(audio_service.event_sender)
+        .manage(audio_service.sink)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

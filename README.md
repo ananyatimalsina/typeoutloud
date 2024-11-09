@@ -1,7 +1,8 @@
-# Tauri + React + Typescript
+# TypeOutLoud
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+An offline tool that enables you to do dictaions alone, using piper-tts.
 
-## Recommended IDE Setup
+# Credits
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+<a href="https://github.com/BinZoom/music-player">BinZoom's music-player<> for some audio related code snippets.
+<a href="https://github.com/mush42/sonata/">Sonata<> for the rust implementation of piper-tts.

@@ -2,8 +2,13 @@ import React, { useEffect } from "react";
 import "./typingscreen.css";
 import Footer from "../../Components/Footer/footer";
 import ContextMenu from "../../Components/ContextMenu/contextmenu";
+import Project from "../../Models/Project";
 
-export default function TypingScreen() {
+type TypingScreenProps = {
+  project: Project;
+};
+
+export default function TypingScreen({ project }: TypingScreenProps) {
   const [height, setHeight] = React.useState(0);
   const width = window.innerWidth - 50;
 
@@ -67,7 +72,7 @@ export default function TypingScreen() {
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       />
-      <Footer />
+      <Footer src={project.audios} />
     </div>
   );
 }

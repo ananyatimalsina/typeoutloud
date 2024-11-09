@@ -17,6 +17,8 @@ type SettingsProps = {
   setLoading: (value: boolean) => void;
 };
 
+// TODO: Trigger the synthesize_to_file function when the settings are changed
+
 export default function Settings({
   project,
   setProject,

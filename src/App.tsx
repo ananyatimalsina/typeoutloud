@@ -45,7 +45,7 @@ function App() {
         setNewFile={setNewFile}
         setProject={setProject}
       />
-      <TypingScreen />
+      <TypingScreen project={project} />
       <Settings
         defaultSettings={defaultSettings}
         setDefaultSettings={setDefaultSettings}

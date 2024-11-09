@@ -12,3 +12,8 @@
 .footerItem {
   margin: 0.5rem;
 }
+
+.footerItem.disabled {
+  cursor: not-allowed;
+  color: gray;
+}
